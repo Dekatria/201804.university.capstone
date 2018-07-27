@@ -20,53 +20,12 @@
 				font-size:13px;
 				text-align:center;
 			}
-			.sidenav {
-				height: 100%;
-				width: 0;
-				position: fixed;
-				z-index: 1;
-				top: 0;
-				left: 0;
-				background-color: #111;
-				overflow-x: hidden;
-				transition: 0.5s;
-				padding-top: 60px;
-			}
-
-			.sidenav a {
-				padding: 8px 8px 8px 32px;
-				text-decoration: none;
-				font-size: 25px;
-				color: #818181;
-				display: block;
-				transition: 0.3s;
-			}
-
-			.sidenav a:hover {
-				color: #f1f1f1;
-			}
-
-			.sidenav .closebtn {
-				position: absolute;
-				top: 0;
-				right: 25px;
-				font-size: 36px;
-				margin-left: 50px;
-			}
-
 		</style>
 	</head>
 	<body>
 
 		<div id="container"></div>
 		<div id="info">Container Optimization GUI Prototype - v3.05</div>
-		<div id="mySidenav" class="sidenav">
-			<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-		 	<a href="#">About</a>
-		 	<a href="#">Services</a>
-		 	<a href="#">Clients</a>
-		 	<a href="#">Contact</a>
-		</div>
 
 		<script src="js/three.js-master/build/three.js"></script>
 
@@ -85,17 +44,6 @@
 				}
 				return str;
 			};
-			function openNav() {
-				document.getElementById("mySidenav").style.width = "250px";
-				document.getElementById("main").style.marginLeft = "250px";
-				document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
-			}
-
-			function closeNav() {
-				document.getElementById("mySidenav").style.width = "0";
-				document.getElementById("main").style.marginLeft= "0";
-				document.body.style.backgroundColor = "white";
-			}
 			var container, stats;
 			var camera, scene, renderer;
 			var splineHelperObjects = [];
@@ -201,6 +149,7 @@
 				transformControl = new THREE.TransformControls( camera, renderer.domElement );
 				transformControl.addEventListener( 'change', render );
 				scene.add( transformControl );
+				// Hiding transform situation is a little in a mess :()
 				transformControl.addEventListener( 'change', function( e ) {
 					cancelHideTransorm();
 				} );
@@ -210,7 +159,7 @@
 				transformControl.addEventListener( 'mouseUp', function( e ) {
 					delayHideTransform();
 				} );
-				var dragcontrols = new THREE.DragControls( splineHelperObjects, camera, renderer.domElement );
+				var dragcontrols = new THREE.DragControls( splineHelperObjects, camera, renderer.domElement ); //
 				dragcontrols.enabled = false;
 				dragcontrols.addEventListener( 'hoveron', function ( event ) {
 					transformControl.attach( event.object );
@@ -236,44 +185,39 @@
 				 * Curves
 				 *********/
 				shipping = new THREE.Mesh(
-					contsize[params.contsize],
-					new THREE.MeshBasicMaterial({
-						color: 0x000000,
-						transparent: true,
-						opacity: 0.25,
-						overdraw: 0.5
-				}));
+    				contsize[params.contsize],
+    				new THREE.MeshBasicMaterial({
+        				color: 0x000000,
+        				transparent: true,
+        				opacity: 0.25,
+        				overdraw: 0.5
+    			}));
 				shipping.position.set(0,shipping.geometry.parameters.height/2,0);
-				scene.add(shipping);
-				tolerance = new THREE.Mesh(
-					tolsize[params.contsize],
-					new THREE.MeshBasicMaterial({
-						color: 0xffffff,
-						transparent: true,
-						opacity: 0.75,
-						overdraw: 0.5
-				}));
+    			scene.add(shipping);
+    			tolerance = new THREE.Mesh(
+    				tolsize[params.contsize],
+    				new THREE.MeshBasicMaterial({
+        				color: 0xffffff,
+        				transparent: true,
+        				opacity: 0.75,
+        				overdraw: 0.5
+    			}));
 				tolerance.position.set(0,tolerance.geometry.parameters.height/2,0);
-				scene.add(tolerance);
+    			scene.add(tolerance);
 			}
 			function addSplineObject( position ) {
 				var material = new THREE.MeshLambertMaterial( { color: params.color} );
 				var geom = new THREE.BoxBufferGeometry(params.width,params.height,params.depth);
-				var edges = new THREE.EdgesGeometry( geom );
-				var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x00000}));				
 				var object = new THREE.Mesh( geom, material );
 				if ( position ) {
 					object.position.copy( position );
-					line.position.copy( position );
 				} else {
 					object.position.x = Math.random() * 1000 - 500;
 					object.position.y = Math.random() * 600;
 					object.position.z = Math.random() * 800 - 400;
 				}
-				
 				object.castShadow = true;
 				object.receiveShadow = true;
-				object.add( line );
 				scene.add( object );
 				splineHelperObjects.push( object );
 				boxList.data.push({
@@ -315,21 +259,21 @@
 			}
 			function solve(){
 				var xhr = new XMLHttpRequest();
-				var url = "https://dekatria.pythonanywhere.com/";
+				var url = "http://dekatria.pythonanywhere.com/";
 				xhr.open("POST", url, true);
 				xhr.setRequestHeader("Content-Type", "application/json");
 				xhr.onreadystatechange = function () {
-					if (xhr.readyState === 4 && xhr.status === 200) {
-						var json = JSON.parse(xhr.responseText);
-						for (var i = 0; i < splinePointsLength; i++){
-							splineHelperObjects[i].position.set(
-								json["data"][i]["x"]-0.5*shipping.geometry.parameters.width,
-								json["data"][i]["y"],
-								json["data"][i]["z"]-0.5*shipping.geometry.parameters.depth
-								)
-							;
-						};
-					}
+				    if (xhr.readyState === 4 && xhr.status === 200) {
+				        var json = JSON.parse(xhr.responseText);
+				        for (var i = 0; i < splinePointsLength; i++){
+				        	splineHelperObjects[i].position.set(
+				        		json["data"][i]["x"]-0.5*shipping.geometry.parameters.width,
+				        		json["data"][i]["y"],
+				        		json["data"][i]["z"]-0.5*shipping.geometry.parameters.depth
+				        		)
+				        	;
+				        };
+				    }
 				};
 				boxList.binsize = {
 						w: shipping.geometry.parameters.width,
