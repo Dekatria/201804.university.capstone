@@ -20,53 +20,55 @@
 				font-size:13px;
 				text-align:center;
 			}
-			.sidenav {
-				height: 100%;
-				width: 0;
-				position: fixed;
-				z-index: 1;
-				top: 0;
-				left: 0;
-				background-color: #111;
-				overflow-x: hidden;
-				transition: 0.5s;
-				padding-top: 60px;
-			}
-
-			.sidenav a {
-				padding: 8px 8px 8px 32px;
-				text-decoration: none;
-				font-size: 25px;
-				color: #818181;
-				display: block;
-				transition: 0.3s;
-			}
-
-			.sidenav a:hover {
-				color: #f1f1f1;
-			}
-
-			.sidenav .closebtn {
-				position: absolute;
-				top: 0;
-				right: 25px;
-				font-size: 36px;
-				margin-left: 50px;
-			}
-
+			#map {
+            	height: 100%;
+            	font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+        	}
 		</style>
 	</head>
 	<body>
+		<!-- <div id="sidebar" class="sidebar collapsed"> -->
+        <!-- <div class="sidebar-tabs">
+            <ul role="tablist">
+                <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                <li><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
+                <li class="disabled"><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
+                <li><a href="https://github.com/Turbo87/sidebar-v2" role="tab" target="_blank"><i class="fa fa-github"></i></a></li>
+            </ul>
 
-		<div id="container"></div>
-		<div id="info">Container Optimization GUI Prototype - v3.05</div>
-		<div id="mySidenav" class="sidenav">
-			<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-		 	<a href="#">About</a>
-		 	<a href="#">Services</a>
-		 	<a href="#">Clients</a>
-		 	<a href="#">Contact</a>
+            <ul role="tablist">
+                <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
+            </ul>
+        </div>
+
+
+        <div class="sidebar-content">
+            <div class="sidebar-pane" id="home">
+                <h1 class="sidebar-header">
+                    sidebar-v2
+                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+            </div>
+
+            <div class="sidebar-pane" id="profile">
+                <h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+            </div>
+
+            <div class="sidebar-pane" id="messages">
+                <h1 class="sidebar-header">Messages<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+            </div>
+
+            <div class="sidebar-pane" id="settings">
+                <h1 class="sidebar-header">Settings<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+            </div>
+        </div>
+		</div> -->
+
+		<div id="main">
+			<div id="container"></div>
+			<div id="info">Container Loading Tool - v4.05</div>
 		</div>
+		
 
 		<script src="js/three.js-master/build/three.js"></script>
 
@@ -77,6 +79,9 @@
 		<script src="js/libs/stats.min.js"></script>
 		<script src="js/libs/dat.gui.min.js"></script>
 
+		<script src="js/jquery-2.1.1.min.js"></script>
+		<script src="js/jquery-sidebar.js"></script>
+
 		<script>
 			String.prototype.format = function () {
 				var str = this;
@@ -85,17 +90,7 @@
 				}
 				return str;
 			};
-			function openNav() {
-				document.getElementById("mySidenav").style.width = "250px";
-				document.getElementById("main").style.marginLeft = "250px";
-				document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
-			}
-
-			function closeNav() {
-				document.getElementById("mySidenav").style.width = "0";
-				document.getElementById("main").style.marginLeft= "0";
-				document.body.style.backgroundColor = "white";
-			}
+			var sidebar = $('#sidebar').sidebar();
 			var container, stats;
 			var camera, scene, renderer;
 			var splineHelperObjects = [];
@@ -103,6 +98,21 @@
 			var point = new THREE.Vector3();
 			var options;
 			var transformControl;
+			var brewer = [
+				"#8dd3c7",
+				"#ffffb3",
+				"#bebada",
+				"#fb8072",
+				"#80b1d3",
+				"#fdb462",
+				"#b3de69",
+				"#fccde5",
+				"#d9d9d9",
+				"#bc80bd",
+				"#ccebc5",
+				"ffed6f"
+			];
+			var bcount = 0;
 			var params = {
 				contsize: 0,
 				removeLast: removeLast,
@@ -111,9 +121,10 @@
 				height: 20,
 				depth: 20,
 				quantity: 1,
-				color: "#ffffff",
+				selectcol: false,
+				color: brewer[bcount],
 				generate: generate,
-				algorithm: "extreme point",
+				algorithm: "EPBFD",
 				solve: solve
 			};
 			var contsize = {
@@ -167,25 +178,34 @@
 				renderer.shadowMap.enabled = true;
 				container.appendChild( renderer.domElement );
 				stats = new Stats();
-				container.appendChild( stats.dom );
+				// container.appendChild( stats.dom );
 				var gui = new dat.GUI();
 				gui.add( params, 'contsize', {"20 footer":0, "40 footer":1, "40 footer HC":2}).onChange( function(value){
 					shipping.geometry = contsize[params.contsize];
 					shipping.position.set(0,shipping.geometry.parameters.height/2,0);
 					tolerance.geometry = tolsize[params.contsize];
 					tolerance.position.set(0,tolerance.geometry.parameters.height/2,0);
-				});
-				gui.add( params, 'removeLast');
-				gui.add( params, 'clearAll' );
+				}).name("container size");
+				gui.add( params, 'removeLast').name("remove last");
+				gui.add( params, 'clearAll').name("clear all");
 				var addBox = gui.addFolder("Add new box(s)")
-				addBox.add( params, 'width', 0, 200 ).step( 0.01 );
-				addBox.add( params, 'height', 0, 200 ).step( 0.01 );
-				addBox.add( params, 'depth', 0, 200 ).step( 0.01 );
+				addBox.add( params, 'width', 0, 200 ).step( 0.01 ).name("width (cm)");
+				addBox.add( params, 'height', 0, 200 ).step( 0.01 ).name("height (cm)");
+				addBox.add( params, 'depth', 0, 200 ).step( 0.01 ).name("depth (cm)");
 				addBox.add( params, 'quantity', 0, 100 ).step( 1 );
-				addBox.addColor( params, 'color');
+				var colcon;
+				addBox.add( params, 'selectcol').onChange(
+						function(value){
+							if (value == true){
+								colcon = addBox.addColor( params, 'color').listen().onChange();
+							} else {
+								addBox.remove(colcon);
+							}
+						}
+					).name("override colour");
 				addBox.add( params, 'generate');
 				var algo = gui.addFolder("Arrange box(s)");
-				algo.add(params, 'algorithm', ['cubspack', 'extreme point']);
+				algo.add(params, 'algorithm', ['EPBFD', "H1", "H2", "HA"]);
 				algo.add(params, 'solve');
 				gui.open();
 				// Controls
@@ -306,12 +326,20 @@
 				splinePointsLength = 0;
 				boxList.data =[];
 			}
+			// function gencont(cont){
+			// 	for (var i = 0; i <)
+			// }
 			function generate(){
 				for (var i = 0; i<params.quantity; i++){
 					splinePointsLength ++;
 					addSplineObject();
 				}
 				lastAdded.push(params.quantity);
+				params.color = brewer[bcount];
+				bcount++;
+				if (bcount > 11) {
+					bcount = 0;
+				}
 			}
 			function solve(){
 				var xhr = new XMLHttpRequest();
