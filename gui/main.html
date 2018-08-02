@@ -4,6 +4,9 @@
 		<title>Container Optimization GUI Prototype - v3.05</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<!-- <link href="css/font-awesome.min.css" rel="stylesheet"> -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="css/sidebar.css" />
 		<style>
 			body {
 				font-family: Monospace;
@@ -20,49 +23,50 @@
 				font-size:13px;
 				text-align:center;
 			}
-			#map {
-            	height: 100%;
-            	font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
-        	}
 		</style>
 	</head>
 	<body>
-		<!-- <div id="sidebar" class="sidebar collapsed"> -->
-        <!-- <div class="sidebar-tabs">
-            <ul role="tablist">
-                <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
-                <li><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
-                <li class="disabled"><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
-                <li><a href="https://github.com/Turbo87/sidebar-v2" role="tab" target="_blank"><i class="fa fa-github"></i></a></li>
-            </ul>
+		<div id="sidebar" class="sidebar collapsed">
+		<!-- Nav tabs -->
+		<div class="sidebar-tabs">
+			<ul role="tablist">
+				<li><a href="#docs" role="tab"><i class="fa fa-book"></i></a></li>
+				<li><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
+				<li class="disabled"><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
+			</ul>
 
-            <ul role="tablist">
-                <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
-            </ul>
-        </div>
+			<ul role="tablist">
+				<li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
+			</ul>
+		</div>
 
+		<!-- Tab panes -->
+		<div class="sidebar-content">
+			<div class="sidebar-pane" id="docs">
+				<h1 class="sidebar-header">
+					Documentation
+					<span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+				</h1>
 
-        <div class="sidebar-content">
-            <div class="sidebar-pane" id="home">
-                <h1 class="sidebar-header">
-                    sidebar-v2
-                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
-                </h1>
-            </div>
+				<p>This is an awesome app.</a>.</p>
 
-            <div class="sidebar-pane" id="profile">
-                <h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-            </div>
+			</div>
 
-            <div class="sidebar-pane" id="messages">
-                <h1 class="sidebar-header">Messages<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-            </div>
+			<div class="sidebar-pane" id="profile">
+				<h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+			</div>
 
-            <div class="sidebar-pane" id="settings">
-                <h1 class="sidebar-header">Settings<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-            </div>
-        </div>
-		</div> -->
+			<div class="sidebar-pane" id="messages">
+				<h1 class="sidebar-header">Messages<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+			</div>
+
+			<div class="sidebar-pane" id="settings">
+				<h1 class="sidebar-header">Settings<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+			</div>
+		</div>
+		</div>
+
+		<div id="map" class="sidebar-map"></div>
 
 		<div id="main">
 			<div id="container"></div>
@@ -83,6 +87,7 @@
 		<script src="js/jquery-sidebar.js"></script>
 
 		<script>
+			var sidebar = $('#sidebar').sidebar();
 			String.prototype.format = function () {
 				var str = this;
 				for ( var i = 0; i < arguments.length; i ++ ) {
@@ -90,7 +95,6 @@
 				}
 				return str;
 			};
-			var sidebar = $('#sidebar').sidebar();
 			var container, stats;
 			var camera, scene, renderer;
 			var splineHelperObjects = [];
@@ -169,9 +173,9 @@
 				helper.material.opacity = 0.25;
 				helper.material.transparent = true;
 				scene.add( helper );
-				//var axes = new THREE.AxesHelper( 1000 );
-				//axes.position.set( - 500, - 500, - 500 );
-				//scene.add( axes );
+				var axes = new THREE.AxesHelper( 1000 );
+				axes.position.set( - 500, - 500, - 500 );
+				scene.add( axes );
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -196,7 +200,7 @@
 				var colcon;
 				addBox.add( params, 'selectcol').onChange(
 						function(value){
-							if (value == true){
+							if (values){
 								colcon = addBox.addColor( params, 'color').listen().onChange();
 							} else {
 								addBox.remove(colcon);
