@@ -31,8 +31,9 @@
 		<div class="sidebar-tabs">
 			<ul role="tablist">
 				<li><a href="#docs" role="tab"><i class="fa fa-book"></i></a></li>
-				<li><a href="#profile" role="tab"><i class="fa fa-user"></i></a></li>
-				<li class="disabled"><a href="#messages" role="tab"><i class="fa fa-envelope"></i></a></li>
+				<li><a href="#import" role="tab"><i class="fa fa-folder-open"></i></a></li>
+				<li><a href="#blist" role="tab"><i class="fa fa-list"></i></a></li>
+				<li><a href="#share" role="tab"><i class="fa fa-share-alt"></i></a></li>
 			</ul>
 
 			<ul role="tablist">
@@ -51,12 +52,14 @@
 				<p>This is an awesome app.</a>.</p>
 
 			</div>
-
-			<div class="sidebar-pane" id="profile">
+			<div class="sidebar-pane" id="import">
+				<h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+			</div>
+			<div class="sidebar-pane" id="blist">
 				<h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
 			</div>
 
-			<div class="sidebar-pane" id="messages">
+			<div class="sidebar-pane" id="share">
 				<h1 class="sidebar-header">Messages<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
 			</div>
 
@@ -141,6 +144,8 @@
 				1: new THREE.BoxGeometry(233, 236, 1200),
 				2: new THREE.BoxGeometry(233, 268, 1200),
 			};
+			var contHelperObject = [];
+			var contCount = 0
 			var lastAdded = [];
 			var boxList = {data:[]};
 
@@ -163,19 +168,19 @@
 				light.shadow.mapSize.height = 1024;
 				scene.add( light );
 				spotlight = light;
-				var planeGeometry = new THREE.PlaneBufferGeometry( 2000, 2000 );
+				var planeGeometry = new THREE.PlaneBufferGeometry( 4500, 4500 );
 				planeGeometry.rotateX( - Math.PI / 2 );
 				var planeMaterial = new THREE.ShadowMaterial( { opacity: 0.2 } );
 				var plane = new THREE.Mesh( planeGeometry, planeMaterial );
 				plane.receiveShadow = true;
 				scene.add( plane );
-				var helper = new THREE.GridHelper( 2000, 100 );
+				var helper = new THREE.GridHelper( 4500, 225 );
 				helper.material.opacity = 0.25;
 				helper.material.transparent = true;
 				scene.add( helper );
-				var axes = new THREE.AxesHelper( 1000 );
-				axes.position.set( - 500, - 500, - 500 );
-				scene.add( axes );
+				// var axes = new THREE.AxesHelper( 1000 );
+				// axes.position.set( - 500, - 500, - 500 );
+				// scene.add( axes );
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -184,12 +189,12 @@
 				stats = new Stats();
 				// container.appendChild( stats.dom );
 				var gui = new dat.GUI();
-				gui.add( params, 'contsize', {"20 footer":0, "40 footer":1, "40 footer HC":2}).onChange( function(value){
-					shipping.geometry = contsize[params.contsize];
-					shipping.position.set(0,shipping.geometry.parameters.height/2,0);
-					tolerance.geometry = tolsize[params.contsize];
-					tolerance.position.set(0,tolerance.geometry.parameters.height/2,0);
-				}).name("container size");
+				// gui.add( params, 'contsize', {"20 footer":0, "40 footer":1, "40 footer HC":2}).onChange( function(value){
+				// 	shipping.geometry = contsize[params.contsize];
+				// 	shipping.position.set(0,shipping.geometry.parameters.height/2,0);
+				// 	tolerance.geometry = tolsize[params.contsize];
+				// 	tolerance.position.set(0,tolerance.geometry.parameters.height/2,0);
+				// }).name("container size");
 				gui.add( params, 'removeLast').name("remove last");
 				gui.add( params, 'clearAll').name("clear all");
 				var addBox = gui.addFolder("Add new box(s)")
@@ -200,7 +205,7 @@
 				var colcon;
 				addBox.add( params, 'selectcol').onChange(
 						function(value){
-							if (values){
+							if (value){
 								colcon = addBox.addColor( params, 'color').listen().onChange();
 							} else {
 								addBox.remove(colcon);
@@ -259,26 +264,7 @@
 				/*******
 				 * Curves
 				 *********/
-				shipping = new THREE.Mesh(
-					contsize[params.contsize],
-					new THREE.MeshBasicMaterial({
-						color: 0x000000,
-						transparent: true,
-						opacity: 0.25,
-						overdraw: 0.5
-				}));
-				shipping.position.set(0,shipping.geometry.parameters.height/2,0);
-				scene.add(shipping);
-				tolerance = new THREE.Mesh(
-					tolsize[params.contsize],
-					new THREE.MeshBasicMaterial({
-						color: 0xffffff,
-						transparent: true,
-						opacity: 0.75,
-						overdraw: 0.5
-				}));
-				tolerance.position.set(0,tolerance.geometry.parameters.height/2,0);
-				scene.add(tolerance);
+				gencont([0]);
 			}
 			function addSplineObject( position ) {
 				var material = new THREE.MeshLambertMaterial( { color: params.color} );
@@ -330,9 +316,40 @@
 				splinePointsLength = 0;
 				boxList.data =[];
 			}
-			// function gencont(cont){
-			// 	for (var i = 0; i <)
-			// }
+			function gencont(cont){
+				xpos = -1000;
+				for (var i = 0; i < contCount; i++){
+					var object = contHelperObject.pop();
+					scene.remove(object[0]);
+					scene.remove(object[1]);
+				};
+				contCount = 0;
+				for (var i = 0; i < cont.length; i++){
+					xpos = xpos + (2000/(cont.length + 1));
+					shipping = new THREE.Mesh(
+						contsize[cont[i]],
+						new THREE.MeshBasicMaterial({
+							color: 0x000000,
+							transparent: true,
+							opacity: 0.25,
+							overdraw: 0.5
+					}));
+					shipping.position.set(xpos,shipping.geometry.parameters.height/2,0);
+					scene.add(shipping);
+					tolerance = new THREE.Mesh(
+						tolsize[cont[i]],
+						new THREE.MeshBasicMaterial({
+							color: 0xffffff,
+							transparent: true,
+							opacity: 0.75,
+							overdraw: 0.5
+					}));
+					tolerance.position.set(xpos,tolerance.geometry.parameters.height/2,0);
+					scene.add(tolerance);
+					contHelperObject.push([shipping,tolerance]);
+					contCount ++;
+				}
+			}
 			function generate(){
 				for (var i = 0; i<params.quantity; i++){
 					splinePointsLength ++;
@@ -345,6 +362,13 @@
 					bcount = 0;
 				}
 			}
+			function placebox(bin, object, data){
+				object.position.set(
+						data["x"]+bin.position.x-0.5*shipping.geometry.parameters.width,
+						data["y"],
+						data["z"]-0.5*shipping.geometry.parameters.depth
+					)
+			}
 			function solve(){
 				var xhr = new XMLHttpRequest();
 				var url = "https://dekatria.pythonanywhere.com/";
@@ -353,13 +377,18 @@
 				xhr.onreadystatechange = function () {
 					if (xhr.readyState === 4 && xhr.status === 200) {
 						var json = JSON.parse(xhr.responseText);
+						var sizelist = [];
+						for (var i = 0; i < json["nobin"]; i++){
+							sizelist.push(params.contsize)
+						}
+						gencont(sizelist);
 						for (var i = 0; i < splinePointsLength; i++){
-							splineHelperObjects[i].position.set(
-								json["data"][i]["x"]-0.5*shipping.geometry.parameters.width,
-								json["data"][i]["y"],
-								json["data"][i]["z"]-0.5*shipping.geometry.parameters.depth
-								)
-							;
+							placebox(contHelperObject[json["data"][i]["bin"]][0], splineHelperObjects[i], json["data"][i]);
+							// splineHelperObjects[i].position.set(
+							// 	json["data"][i]["x"]-0.5*shipping.geometry.parameters.width,
+							// 	json["data"][i]["y"],
+							// 	json["data"][i]["z"]-0.5*shipping.geometry.parameters.depth
+							// 	);
 						};
 					}
 				};
