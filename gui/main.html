@@ -148,6 +148,10 @@
 			var contCount = 0
 			var lastAdded = [];
 			var boxList = {data:[]};
+			var mouse = new THREE.Vector2();
+			var radius = 100;
+			var theta = 0;
+			var INTERSECTED;
 
 			init();
 			animate();
@@ -181,6 +185,7 @@
 				// var axes = new THREE.AxesHelper( 1000 );
 				// axes.position.set( - 500, - 500, - 500 );
 				// scene.add( axes );
+				raycaster = new THREE.Raycaster();
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -239,15 +244,15 @@
 				transformControl.addEventListener( 'mouseUp', function( e ) {
 					delayHideTransform();
 				} );
-				var dragcontrols = new THREE.DragControls( splineHelperObjects, camera, renderer.domElement );
-				dragcontrols.enabled = false;
-				dragcontrols.addEventListener( 'hoveron', function ( event ) {
-					transformControl.attach( event.object );
-					cancelHideTransorm();
-				} );
-				dragcontrols.addEventListener( 'hoveroff', function ( event ) {
-					delayHideTransform();
-				} );
+				// var dragcontrols = new THREE.DragControls( splineHelperObjects, camera, renderer.domElement );
+				// dragcontrols.enabled = false;
+				// dragcontrols.addEventListener( 'hoveron', function ( event ) {
+				// 	transformControl.attach( event.object );
+				// 	cancelHideTransorm();
+				// } );
+				// dragcontrols.addEventListener( 'hoveroff', function ( event ) {
+				// 	delayHideTransform();
+				// } );
 				var hiding;
 				function delayHideTransform() {
 					cancelHideTransorm();
@@ -265,6 +270,10 @@
 				 * Curves
 				 *********/
 				gencont([0]);
+
+				document.addEventListener("mousemove", onDocumentMouseMove, false);
+				window.addEventListener( 'resize', onWindowResize, false );
+
 			}
 			function addSplineObject( position ) {
 				var material = new THREE.MeshLambertMaterial( { color: params.color} );
@@ -403,11 +412,36 @@
 			function animate() {
 				requestAnimationFrame( animate );
 				render();
-				stats.update();
-				transformControl.update();
+				// stats.update();
+				// transformControl.update();
 			}
 			function render() {
+
+				raycaster.setFromCamera( mouse, camera );
+				var intersects = raycaster.intersectObjects( scene.children );
+				if ( intersects.length > 0 ) {
+					if ( INTERSECTED != intersects[ 0 ].object ) {
+						if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+						INTERSECTED = intersects[ 0 ].object;
+						INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+						INTERSECTED.material.emissive.setHex( 0xff0000 );
+					}
+				} else {
+					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+					INTERSECTED = null;
+				}
+
 				renderer.render( scene, camera );
+			}
+			function onDocumentMouseMove(event){
+				event.preventDefault();
+				mouse.x = (event.clientX / window.innerWidth)*2-1;
+				mouse.y = -(event.clientY / window.innerHeight)*2+1;
+			}
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 		</script>
 
