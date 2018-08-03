@@ -16,10 +16,6 @@ def main():
     coord = data["data"]
     binsize = data["binsize"]
     packages = []
-    # for coordict in coord:
-    # 	packages.append(Package([coordict["h"], coordict["w"], coordict["d"]]))
-    # binobject = Package([binsize["h"], binsize["w"], binsize["d"]])
-    # solution = binpack(packages, binobject)
     for coordict in coord:
     	packages.append((coordict["w"], coordict["h"], coordict["d"], coordict["id"]))
     binobject = [([binsize["w"], binsize["h"], binsize["d"]])]*3

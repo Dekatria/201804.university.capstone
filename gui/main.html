@@ -53,14 +53,14 @@
 
 			</div>
 			<div class="sidebar-pane" id="import">
-				<h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+				<h1 class="sidebar-header">Import...<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
 			</div>
 			<div class="sidebar-pane" id="blist">
-				<h1 class="sidebar-header">Profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+				<h1 class="sidebar-header">Box List<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
 			</div>
 
 			<div class="sidebar-pane" id="share">
-				<h1 class="sidebar-header">Messages<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+				<h1 class="sidebar-header">Export...<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
 			</div>
 
 			<div class="sidebar-pane" id="settings">
@@ -144,6 +144,7 @@
 				1: new THREE.BoxGeometry(233, 236, 1200),
 				2: new THREE.BoxGeometry(233, 268, 1200),
 			};
+			var contname = {0:"20 footer", 1:"40 footer", 2:"40 footer HC"};
 			var contHelperObject = [];
 			var contCount = 0
 			var lastAdded = [];
@@ -157,11 +158,14 @@
 			animate();
 			function init() {
 				container = document.getElementById( 'container' );
+
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0xf0f0f0 );
+				
 				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
 				camera.position.set( -700, 800, 700 );
 				scene.add( camera );
+				
 				scene.add( new THREE.AmbientLight( 0xf0f0f0 ) );
 				var light = new THREE.SpotLight( 0xffffff, 1.5 );
 				light.position.set( 0, 1500, 200 );
@@ -172,28 +176,35 @@
 				light.shadow.mapSize.height = 1024;
 				scene.add( light );
 				spotlight = light;
+				
 				var planeGeometry = new THREE.PlaneBufferGeometry( 4500, 4500 );
 				planeGeometry.rotateX( - Math.PI / 2 );
 				var planeMaterial = new THREE.ShadowMaterial( { opacity: 0.2 } );
 				var plane = new THREE.Mesh( planeGeometry, planeMaterial );
 				plane.receiveShadow = true;
 				scene.add( plane );
+				
 				var helper = new THREE.GridHelper( 4500, 225 );
 				helper.material.opacity = 0.25;
 				helper.material.transparent = true;
 				scene.add( helper );
+				
 				// var axes = new THREE.AxesHelper( 1000 );
 				// axes.position.set( - 500, - 500, - 500 );
 				// scene.add( axes );
+				
 				raycaster = new THREE.Raycaster();
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.shadowMap.enabled = true;
 				container.appendChild( renderer.domElement );
-				stats = new Stats();
+				
+				// stats = new Stats();
 				// container.appendChild( stats.dom );
+				
 				var gui = new dat.GUI();
+				
 				// gui.add( params, 'contsize', {"20 footer":0, "40 footer":1, "40 footer HC":2}).onChange( function(value){
 				// 	shipping.geometry = contsize[params.contsize];
 				// 	shipping.position.set(0,shipping.geometry.parameters.height/2,0);
@@ -202,11 +213,14 @@
 				// }).name("container size");
 				gui.add( params, 'removeLast').name("remove last");
 				gui.add( params, 'clearAll').name("clear all");
+				gui.add(params, 'solve');
+				
 				var addBox = gui.addFolder("Add new box(s)")
 				addBox.add( params, 'width', 0, 200 ).step( 0.01 ).name("width (cm)");
 				addBox.add( params, 'height', 0, 200 ).step( 0.01 ).name("height (cm)");
 				addBox.add( params, 'depth', 0, 200 ).step( 0.01 ).name("depth (cm)");
 				addBox.add( params, 'quantity', 0, 100 ).step( 1 );
+				
 				var colcon;
 				addBox.add( params, 'selectcol').onChange(
 						function(value){
@@ -218,11 +232,12 @@
 						}
 					).name("override colour");
 				addBox.add( params, 'generate');
-				var algo = gui.addFolder("Arrange box(s)");
-				algo.add(params, 'algorithm', ['EPBFD', "H1", "H2", "HA"]);
-				algo.add(params, 'solve');
+				
+				// var algo = gui.addFolder("Arrange box(s)");
+				// // algo.add(params, 'algorithm', ['EPBFD', "H1", "H2", "HA"]);
+				// algo.add(params, 'solve');
 				gui.open();
-				// Controls
+				
 				var controls = new THREE.OrbitControls( camera, renderer.domElement );
 				controls.damping = 0.2;
 				controls.addEventListener( 'change', render );
@@ -232,6 +247,7 @@
 				controls.addEventListener( 'end', function() {
 					delayHideTransform();
 				} );
+				
 				transformControl = new THREE.TransformControls( camera, renderer.domElement );
 				transformControl.addEventListener( 'change', render );
 				scene.add( transformControl );
@@ -244,6 +260,7 @@
 				transformControl.addEventListener( 'mouseUp', function( e ) {
 					delayHideTransform();
 				} );
+				
 				// var dragcontrols = new THREE.DragControls( splineHelperObjects, camera, renderer.domElement );
 				// dragcontrols.enabled = false;
 				// dragcontrols.addEventListener( 'hoveron', function ( event ) {
@@ -253,6 +270,7 @@
 				// dragcontrols.addEventListener( 'hoveroff', function ( event ) {
 				// 	delayHideTransform();
 				// } );
+				
 				var hiding;
 				function delayHideTransform() {
 					cancelHideTransorm();
@@ -266,9 +284,7 @@
 				function cancelHideTransorm() {
 					if ( hiding ) clearTimeout( hiding );
 				}
-				/*******
-				 * Curves
-				 *********/
+
 				gencont([0]);
 
 				document.addEventListener("mousemove", onDocumentMouseMove, false);
@@ -281,6 +297,7 @@
 				var edges = new THREE.EdgesGeometry( geom );
 				var line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color: 0x00000}));				
 				var object = new THREE.Mesh( geom, material );
+				
 				if ( position ) {
 					object.position.copy( position );
 					line.position.copy( position );
@@ -303,10 +320,12 @@
 				})
 				return object;
 			}
+
 			function addPoint() {
 				splinePointsLength ++;
 				addSplineObject();
 			}
+			
 			function removeLast() {
 				if ( splinePointsLength <= 0 ) {
 					return;
@@ -325,12 +344,15 @@
 				splinePointsLength = 0;
 				boxList.data =[];
 			}
+			
 			function gencont(cont){
 				xpos = -1000;
 				for (var i = 0; i < contCount; i++){
 					var object = contHelperObject.pop();
-					scene.remove(object[0]);
-					scene.remove(object[1]);
+					var objlen = object.length;
+					for (var j = 0; j < objlen; i++){
+						scene.remove(object.pop())
+					}
 				};
 				contCount = 0;
 				for (var i = 0; i < cont.length; i++){
@@ -345,6 +367,7 @@
 					}));
 					shipping.position.set(xpos,shipping.geometry.parameters.height/2,0);
 					scene.add(shipping);
+					
 					tolerance = new THREE.Mesh(
 						tolsize[cont[i]],
 						new THREE.MeshBasicMaterial({
@@ -355,10 +378,51 @@
 					}));
 					tolerance.position.set(xpos,tolerance.geometry.parameters.height/2,0);
 					scene.add(tolerance);
-					contHelperObject.push([shipping,tolerance]);
+
+					// var title = gentext(
+					// 	contname[cont[i]], 
+					// 	"x", 
+					// 	xpos, 
+					// 	tolerance.geometry.parameters.height/2 + 400
+					// 	);
+					// scene.add(title);
+					
+					// var width = gentext(
+					// 	contsize[cont[i]].parameters.width.toString() + " cm",
+					// 	"x", 
+					// 	xpos,
+					// 	tolerance.geometry.parameters.height/2 + 300
+					// 	);
+					// scene.add(width);
+					
+					// var height = gentext(
+					// 	contsize[cont[i]].parameters.depth.toString() + " cm",
+					// 	"y",
+					// 	xpos+tolerance.geometry.parameters.width/2 + 100,
+					// 	0
+					// 	);
+					// scene.add(height);
+
+					// var depth = gentext(
+					// 	contsize[cont[i]].parameters.height.toString() + " cm",
+					// 	"z", 
+					// 	xpos+tolerance.geometry.parameters.width/2 +100,
+					// 	-tolerance.geometry.parameters.height -100
+					// 	);
+					// scene.add(depth);
+
+					contHelperObject.push([
+						shipping,
+						tolerance, 
+						// title,
+						// width,
+						// height,
+						// depth
+						]);
 					contCount ++;
 				}
 			}
+			
 			function generate(){
 				for (var i = 0; i<params.quantity; i++){
 					splinePointsLength ++;
@@ -371,6 +435,7 @@
 					bcount = 0;
 				}
 			}
+			
 			function placebox(bin, object, data){
 				object.position.set(
 						data["x"]+bin.position.x-0.5*shipping.geometry.parameters.width,
@@ -378,9 +443,10 @@
 						data["z"]-0.5*shipping.geometry.parameters.depth
 					)
 			}
+			
 			function solve(){
 				var xhr = new XMLHttpRequest();
-				var url = "https://dekatria.pythonanywhere.com/";
+				var url = "http://127.0.0.1:5000/";
 				xhr.open("POST", url, true);
 				xhr.setRequestHeader("Content-Type", "application/json");
 				xhr.onreadystatechange = function () {
@@ -409,12 +475,14 @@
 				var data = JSON.stringify(boxList);
 				xhr.send(data);
 			}
+			
 			function animate() {
 				requestAnimationFrame( animate );
-				render();
+				// render();
 				// stats.update();
 				// transformControl.update();
 			}
+			
 			function render() {
 
 				raycaster.setFromCamera( mouse, camera );
@@ -434,15 +502,60 @@
 
 				renderer.render( scene, camera );
 			}
+			
 			function onDocumentMouseMove(event){
 				event.preventDefault();
 				mouse.x = (event.clientX / window.innerWidth)*2-1;
 				mouse.y = -(event.clientY / window.innerHeight)*2+1;
 			}
+			
 			function onWindowResize() {
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+			function gentext(message, axis, posx, posy) {
+				var loader = new THREE.FontLoader();
+				loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+					var xMid, text;
+					var color = 0x006699;
+					var matDark = new THREE.LineBasicMaterial( {
+						color: color,
+						side: THREE.DoubleSide
+					} );
+					var matLite = new THREE.MeshBasicMaterial( {
+						color: color,
+						transparent: true,
+						opacity: 0.4,
+						side: THREE.DoubleSide
+					} );
+					var shapes = font.generateShapes( message, 50 );
+					var geometry = new THREE.ShapeBufferGeometry( shapes );
+					geometry.computeBoundingBox();
+					xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+					geometry.translate( xMid, 0, 0 );
+					text = new THREE.Mesh( geometry, matLite );
+					if (axis == "x"){
+						text.rotation.x = -Math.PI / 2;
+						text.position.x = posx;
+						text.position.y = 10;
+						text.position.z = posy;
+					}
+					if (axis == "y"){
+						text.rotation.x = -Math.PI / 2;
+						text.rotation.z = Math.PI / 2;
+						text.position.x = posx;
+						text.position.y = 10;
+						text.position.z = posy;
+					}
+					if (axis == "z"){
+						text.rotation.z = Math.PI / 2;
+						text.position.y = 150;
+						text.position.x = posx;
+						text.position.z = posy;
+					};
+					scene.add( text );
+				} );
 			}
 		</script>
 
